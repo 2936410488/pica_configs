@@ -61,7 +61,7 @@ class Baozi extends ComicSource {
       }
       let json = JSON.parse(res.body);
       let token = json.data;
-      Network.setCookies("https://www.baozimh.com", [
+      Network.setCookies("https://cn.bzmgcn.com", [
         Cookie('TSID', token, '.baozimh.com'),
       ]);
       return "ok";
@@ -114,7 +114,7 @@ class Baozi extends ComicSource {
       type: "singlePageWithMultiPart",
 
       load: async () => {
-        var res = await Network.get("https://www.baozimh.com");
+        var res = await Network.get("https://cn.bzmgcn.com");
         if (res.status !== 200) {
           throw "Invalid status code: " + res.status;
         }
@@ -222,7 +222,7 @@ class Baozi extends ComicSource {
   /// 分类漫画页面, 即点击分类标签后进入的页面
   categoryComics = {
     load: async (category, param, options, page) => {
-      let res = await Network.get(`https://www.baozimh.com/api/bzmhq/amp_comic_list?type=${param}&region=${options[0]}&state=${options[1]}&filter=%2a&page=${page}&limit=36&language=${this.lang}&__amp_source_origin=https%3A%2F%2Fbaozimh.com`);
+      let res = await Network.get(`https://cn.bzmgcn.com/api/bzmhq/amp_comic_list?type=${param}&region=${options[0]}&state=${options[1]}&filter=%2a&page=${page}&limit=36&language=${this.lang}&__amp_source_origin=https%3A%2F%2Fbaozimh.com`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -250,7 +250,7 @@ class Baozi extends ComicSource {
   /// 搜索
   search = {
     load: async (keyword, options, page) => {
-      let res = await Network.get(`https://www.baozimh.com/search?q=${keyword}`);
+      let res = await Network.get(`https://cn.bzmgcn.com/search?q=${keyword}`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -276,7 +276,7 @@ class Baozi extends ComicSource {
     addOrDelFavorite: async (comicId, folderId, isAdding) => {
       if (!isAdding) {
         let res = await Network.post(
-        `https://www.baozimh.com/user/operation_v2?op=del_bookmark&comic_id=${comicId}`
+        `https://cn.bzmgcn.com/user/page_direct?comic_id=${comicId}`
       );
         if (!res.status || res.status >= 400) {
           throw "Invalid status code: " + res.status;
@@ -284,7 +284,7 @@ class Baozi extends ComicSource {
         return "ok";
       } else {
         let res = await Network.post(
-          `https://www.baozimh.com/user/operation_v2?op=set_bookmark&comic_id=${comicId}&chapter_slot=0`
+          `https://cn.bzmgcn.com/user/page_direct?&comic_id=${comicId}&chapter_slot=0`
         );
         if (!res.status || res.status >= 400) {
           throw "Invalid status code: " + res.status;
@@ -297,7 +297,7 @@ class Baozi extends ComicSource {
     loadFolders: null,
     /// 加载漫画
     loadComics: async (page, folder) => {
-      let res = await Network.get(`https://www.baozimh.com/user/my_bookshelf`);
+      let res = await Network.get(`https://cn.bzmgcn.com/user/my_bookshelf`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -336,7 +336,7 @@ class Baozi extends ComicSource {
   comic = {
     // 加载漫画信息
     loadInfo: async (id) => {
-      let res = await Network.get(`https://www.baozimh.com/comic/${id}`);
+      let res = await Network.get(`https://cn.bzmgcn.com/comic/${id}`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -368,19 +368,11 @@ class Baozi extends ComicSource {
         .querySelector("p.comics-detail__desc")
         .text.trim();
       let chapters = new Map();
-      let i = 0;
-      for (let c of document.querySelectorAll(
-        "div#chapter-items > div.comics-chapters > a > div > span"
-      )) {
-        chapters.set(i.toString(), c.text.trim());
-        i++;
-      }
-      for (let c of document.querySelectorAll(
-        "div#chapters_other_list > div.comics-chapters > a > div > span"
-      )) {
-        chapters.set(i.toString(), c.text.trim());
-        i++;
-      }
+      let chapterSpans = document.querySelectorAll(".comics-chapters a.comics-chapters__item div span");
+      chapterSpans.forEach((span, idx) => {
+        let title = span.text.trim();
+        if (title) chapters.set(idx.toString(), title);
+      });
       let recommend = [];
       for (let c of document.querySelectorAll("div.recommend--item")) {
         if (c.querySelectorAll("div.tag-comic").length > 0) {
