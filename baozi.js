@@ -5,12 +5,12 @@ class Baozi extends ComicSource {
     // 唯一标识符
     key = "baozi"
 
-    version = "1.1.0"
+    version = "1.2.0"
 
     minAppVersion = "4.0.0"
 
     // 更新链接
-    url = "https://raw.githubusercontent.com/ccbkv/pica_configs/master/baozi.js"
+    url = "https://raw.githubusercontent.com/2936410488/pica_configs/master/baozi.js"
 
 /// APP启动时或者添加/更新漫画源时执行此函数
   init() {}
@@ -21,13 +21,13 @@ class Baozi extends ComicSource {
       title: "主域名",
       type: "select",
       options: [
-        { value: "baozimhcn.com" },
+        { value: "baozimh.com" },
         { value: "webmota.com" },
         { value: "kukuc.co" },
         { value: "twmanga.com" },
         { value: "dinnerku.com" },
       ],
-      default: "baozimhcn.com",
+      default: "baozimh.com",
     },
   };
 
@@ -45,7 +45,7 @@ class Baozi extends ComicSource {
     /// 返回任意值表示登录成功
     login: async (account, pwd) => {
       let res = await Network.post(
-        "https://baozimhcn.com/api/bui/signin",
+        "https://cn.baozimh.com/api/bui/signin",
         {
           "content-type":
             "multipart/form-data; boundary=----WebKitFormBoundaryFUNUxpOwyUaDop8s",
@@ -61,7 +61,7 @@ class Baozi extends ComicSource {
       }
       let json = JSON.parse(res.body);
       let token = json.data;
-      Network.setCookies("https://baozimhcn.com", [
+      Network.setCookies("https://www.baozimh.com", [
         Cookie('TSID', token, '.baozimh.com'),
       ]);
       return "ok";
@@ -114,7 +114,7 @@ class Baozi extends ComicSource {
       type: "singlePageWithMultiPart",
 
       load: async () => {
-        var res = await Network.get("https://baozimhcn.com");
+        var res = await Network.get("https://www.baozimh.com");
         if (res.status !== 200) {
           throw "Invalid status code: " + res.status;
         }
@@ -222,7 +222,7 @@ class Baozi extends ComicSource {
   /// 分类漫画页面, 即点击分类标签后进入的页面
   categoryComics = {
     load: async (category, param, options, page) => {
-      let res = await Network.get(`https://baozimhcn.com/api/bzmhq/amp_comic_list?type=${param}&region=${options[0]}&state=${options[1]}&filter=%2a&page=${page}&limit=36&language=${this.lang}&__amp_source_origin=https%3A%2F%2Fbaozimhcn.com`);
+      let res = await Network.get(`https://www.baozimh.com/api/bzmhq/amp_comic_list?type=${param}&region=${options[0]}&state=${options[1]}&filter=%2a&page=${page}&limit=36&language=${this.lang}&__amp_source_origin=https%3A%2F%2Fbaozimh.com`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -250,7 +250,7 @@ class Baozi extends ComicSource {
   /// 搜索
   search = {
     load: async (keyword, options, page) => {
-      let res = await Network.get(`https://baozimhcn.com/search?q=${keyword}`);
+      let res = await Network.get(`https://www.baozimh.com/search?q=${keyword}`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -276,7 +276,7 @@ class Baozi extends ComicSource {
     addOrDelFavorite: async (comicId, folderId, isAdding) => {
       if (!isAdding) {
         let res = await Network.post(
-        `https://baozimhcn.com/user/operation_v2?op=del_bookmark&comic_id=${comicId}`
+        `https://www.baozimh.com/user/operation_v2?op=del_bookmark&comic_id=${comicId}`
       );
         if (!res.status || res.status >= 400) {
           throw "Invalid status code: " + res.status;
@@ -284,7 +284,7 @@ class Baozi extends ComicSource {
         return "ok";
       } else {
         let res = await Network.post(
-          `https://baozimhcn.com/user/operation_v2?op=set_bookmark&comic_id=${comicId}&chapter_slot=0`
+          `https://www.baozimh.com/user/operation_v2?op=set_bookmark&comic_id=${comicId}&chapter_slot=0`
         );
         if (!res.status || res.status >= 400) {
           throw "Invalid status code: " + res.status;
@@ -297,7 +297,7 @@ class Baozi extends ComicSource {
     loadFolders: null,
     /// 加载漫画
     loadComics: async (page, folder) => {
-      let res = await Network.get(`https://baozimhcn.com/user/my_bookshelf`);
+      let res = await Network.get(`https://www.baozimh.com/user/my_bookshelf`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
@@ -336,7 +336,7 @@ class Baozi extends ComicSource {
   comic = {
     // 加载漫画信息
     loadInfo: async (id) => {
-      let res = await Network.get(`https://baozimhcn.com/comic/${id}`);
+      let res = await Network.get(`https://www.baozimh.com/comic/${id}`);
       if (res.status !== 200) {
         throw "Invalid status code: " + res.status;
       }
