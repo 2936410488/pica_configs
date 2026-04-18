@@ -5,7 +5,7 @@ class Baozi extends ComicSource {
     // 唯一标识符
     key = "baozi"
 
-    version = "1.0.0"
+    version = "1.3.0"
 
     minAppVersion = "4.0.0"
 
@@ -256,12 +256,41 @@ class Baozi extends ComicSource {
             }
             let document = new HtmlDocument(res.body)
 
-            let title = document.querySelector("h1.comics-detail__title").text.trim()
-            let cover = document.querySelector("div.l-content > div > div > amp-img").attributes['src']
-            let author = document.querySelector("h2.comics-detail__author").text.trim()
-            let tags = document.querySelectorAll("div.tag-list > span").map(e => e.text.trim())
-            let updateTime = document.querySelector("div.supporting-text > div > span > em").text.trim().replace('(', '').replace(')', '')
-            let description = document.querySelector("p.comics-detail__desc").text.trim()
+            // 获取标题，带空值检查
+            let titleElement = document.querySelector("h1.comics-detail__title")
+            let title = titleElement ? titleElement.text.trim() : "未知标题"
+            
+            // 获取封面
+            let coverElement = document.querySelector("div.l-content > div > div > amp-img")
+            let cover = coverElement ? coverElement.attributes['src'] : ""
+            
+            // 获取作者
+            let authorElement = document.querySelector("h2.comics-detail__author")
+            let author = authorElement ? authorElement.text.trim() : "未知作者"
+            
+            // 获取标签
+            let tags = []
+            let tagElements = document.querySelectorAll("div.tag-list > span")
+            if (tagElements && tagElements.length > 0) {
+                tags = tagElements.map(e => e.text.trim())
+            }
+            
+            // 获取更新时间，带空值检查
+            let updateTime = ""
+            let updateTimeElement = document.querySelector("div.supporting-text > div > span > em")
+            if (updateTimeElement) {
+                updateTime = updateTimeElement.text.trim().replace('(', '').replace(')', '')
+            } else {
+                // 尝试其他选择器
+                let altUpdateElement = document.querySelector(".supporting-text em")
+                if (altUpdateElement) {
+                    updateTime = altUpdateElement.text.trim().replace('(', '').replace(')', '')
+                }
+            }
+            
+            // 获取描述
+            let descElement = document.querySelector("p.comics-detail__desc")
+            let description = descElement ? descElement.text.trim() : ""
             
             let chapters = new Map()
             let i = 0
@@ -313,18 +342,34 @@ class Baozi extends ComicSource {
                 }
             }
             
+            // 如果还是没有章节，尝试从页面其他地方获取
+            if (chapters.size === 0) {
+                // 尝试获取所有章节链接的文本
+                let allChapterSpans = document.querySelectorAll(".comics-chapters a div span")
+                for(let c of allChapterSpans) {
+                    chapters.set(i.toString(), c.text.trim())
+                    i++
+                }
+            }
+            
             let recommend = []
-            for(let c of document.querySelectorAll("div.recommend--item")) {
+            let recommendItems = document.querySelectorAll("div.recommend--item")
+            for(let c of recommendItems) {
                 if(c.querySelectorAll("div.tag-comic").length > 0) {
-                    let title = c.querySelector("span").text.trim()
-                    let cover = c.querySelector("amp-img").attributes['src']
-                    let url = c.querySelector("a").attributes['href']
-                    let id = url.split("/").pop()
-                    recommend.push({
-                        id: id,
-                        title: title,
-                        cover: cover
-                    })
+                    let titleSpan = c.querySelector("span")
+                    let coverImg = c.querySelector("amp-img")
+                    let link = c.querySelector("a")
+                    if (titleSpan && coverImg && link) {
+                        let recTitle = titleSpan.text.trim()
+                        let recCover = coverImg.attributes['src']
+                        let url = link.attributes['href']
+                        let recId = url.split("/").pop()
+                        recommend.push({
+                            id: recId,
+                            title: recTitle,
+                            cover: recCover
+                        })
+                    }
                 }
             }
 
@@ -334,7 +379,7 @@ class Baozi extends ComicSource {
                 description: description,
                 tags: {
                     "作者": [author],
-                    "更新": [updateTime],
+                    "更新": updateTime ? [updateTime] : [],
                     "标签": tags
                 },
                 chapters: chapters,
